@@ -8,6 +8,21 @@ public class GeneratorScript : MonoBehaviour
     public List<GameObject> currentRoom;
     public float screenWidthInPoint;
 
+    [Header("Obj Generatee")]
+    public GameObject[] availableObj;
+    public List<GameObject> currentObjList;
+
+    public float objMinDistance = 5f;
+    public float objMaxDistance = 10f;
+
+    public float objectsMinY = -1.4f;
+    public float objectsMaxY = 1.4f;
+
+    public float objMinRotation = -45f;
+    public float objMaxRotation = 45f;
+
+
+
     private void Start()
     {
         float height = 2 * Camera.main.orthographicSize;   // camera height
@@ -15,6 +30,61 @@ public class GeneratorScript : MonoBehaviour
 
         StartCoroutine(GeneratorCheck());
 
+    }
+
+    private IEnumerator GeneratorCheck()
+    {
+        while (true)
+        {
+            GenerateRoomIfRequired();
+            GenerateObjIfRequired();
+            yield return new WaitForSeconds(.25f);
+        }
+    }
+
+    private void AddObjects(float lastObjX  )
+    {
+        GameObject obj = Instantiate(availableObj[Random.Range(0, availableObj.Length)]);
+
+        float objPositionX = lastObjX + Random.Range(objMinDistance, objMaxDistance);
+        float objPositionY = Random.Range(objectsMinY, objectsMaxY);
+
+        obj.transform.position = new Vector3(objPositionX, objPositionY, 0);
+
+        float rotation = Random.Range(objMinRotation, objMaxRotation);
+        obj.transform.rotation = Quaternion.Euler(Vector3.forward * rotation);
+
+        currentObjList.Add(obj);
+
+    }
+
+    private void GenerateObjIfRequired()
+    {
+        float farthestObjX = 0;
+        List<GameObject> objToRemove = new List<GameObject>();
+
+        foreach(var obj in currentObjList)
+        {
+            farthestObjX = Mathf.Max(farthestObjX, obj.transform.position.x);
+
+            if(obj.transform.position.x < transform.position.x - screenWidthInPoint)
+            {
+                objToRemove.Add(obj);
+            }
+        }
+
+        foreach(var obj in objToRemove)
+        {
+            currentObjList.Remove(obj);
+            Destroy(obj);
+        }
+
+        if(farthestObjX < transform.position.x + screenWidthInPoint)
+        {
+            AddObjects(farthestObjX);
+        }
+
+        
     }
 
     private void AddRoom(float farthestRoomEx)
@@ -70,13 +140,6 @@ public class GeneratorScript : MonoBehaviour
         }
     }
 
-    private IEnumerator GeneratorCheck()
-    {
-        while (true)
-        {
-            GenerateRoomIfRequired();
-            yield return new WaitForSeconds(.25f);
-        }
-    }
+
 }
 

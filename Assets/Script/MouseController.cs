@@ -1,6 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+using System.Threading.Tasks;
 
 public class MouseController : MonoBehaviour
 {
@@ -15,27 +18,67 @@ public class MouseController : MonoBehaviour
 
     private Rigidbody2D playerRb;
 
+    bool isDead;
+
+    private int coins = 0;
+    public Text coinCollectedText;
+
+    public Button restartButton;
+
+    public AudioClip coinCollectedSound;
+
+
+
+    public AudioSource jetpackAudio;
+    public AudioSource footstepsAudio;
+
+    public ParallaxCamera parallaxCamera;   
+
+
     void Start()
     {
+        isDead = false;
         playerRb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();    
     }
 
     private void FixedUpdate()
     {
-        bool jetpackActive = Input.GetButton("Fire1");
-        if (jetpackActive)
-        {
-            playerRb.AddForce(new Vector2(0, jetPackForce));
-        }
+       
 
-        //Move forward logic 
-        playerRb.velocity = new Vector2( forwardMoveSpeed , playerRb.velocity.y);
+
+        bool jetpackActive = Input.GetButton("Fire1");
+
+
+        if(!isDead)
+        {
+
+            if (jetpackActive)
+            {
+                playerRb.AddForce(new Vector2(0, jetPackForce));
+            }
+
+            //Move forward logic 
+            playerRb.velocity = new Vector2(forwardMoveSpeed, playerRb.velocity.y);
+        }
+      
 
         //Check Ground
         UpdateGroundStatus();
 
         AdjustJetpackParticle(jetpackActive);  // jetpack active when press, flase when releash
+
+        //enable restart button
+        if (isDead && isGround)
+        {
+            restartButton.gameObject.SetActive(true);
+        }
+
+        AdjustFootStepAndJetPackSound(jetpackActive);
+
+        //camera offset follow player
+        parallaxCamera.offset = transform.position.x;
+
     }
 
     private void UpdateGroundStatus()
@@ -62,4 +105,62 @@ public class MouseController : MonoBehaviour
 
 
     }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        
+      
+
+        if (collision.CompareTag("Coin"))
+        {
+            CollectCoint(collision);
+        }
+        else
+        {
+            HitByLaser(collision);
+        }
+    }
+
+    void HitByLaser(Collider2D laserCollider)
+    {
+        if (!isDead)
+        {
+            AudioSource laserZap = laserCollider.gameObject.GetComponent<AudioSource>();
+            laserZap.Play();
+        }
+
+        isDead = true;
+        anim.SetBool("isDead", true);
+    }
+
+    private void CollectCoint(Collider2D coinCollider)
+    {
+        AudioSource.PlayClipAtPoint(coinCollectedSound, transform.position);
+        coins++;
+        coinCollectedText.text = coins.ToString();
+        Destroy(coinCollider.gameObject);
+    }
+
+    public void ReStartGame()
+    {
+        SceneManager.LoadScene("RocketMouse");
+    }
+
+    private void AdjustFootStepAndJetPackSound(bool jetpackActive)
+    {
+        footstepsAudio.enabled = !isDead && isGround;
+        jetpackAudio.enabled = !isDead && !isGround;
+
+        if (jetpackActive)
+        {
+            jetpackAudio.volume = 1.0f;
+        }
+        else
+        {
+            jetpackAudio.volume = 0.5f;
+        }
+    }
+   
+
+    
 }
