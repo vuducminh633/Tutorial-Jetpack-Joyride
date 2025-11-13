@@ -23,7 +23,7 @@ public class MouseController : MonoBehaviour
     private int coins = 0;
     public Text coinCollectedText;
 
-    public Button restartButton;
+
 
     public AudioClip coinCollectedSound;
 
@@ -32,11 +32,15 @@ public class MouseController : MonoBehaviour
     public AudioSource jetpackAudio;
     public AudioSource footstepsAudio;
 
-    public ParallaxCamera parallaxCamera;   
+    public ParallaxCamera parallaxCamera;
+
+    [Header("Lose Panel")]
+    public GameObject reStartDialog;
 
 
     void Start()
     {
+        reStartDialog.SetActive(false);
         isDead = false;
         playerRb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();    
@@ -44,9 +48,7 @@ public class MouseController : MonoBehaviour
 
     private void FixedUpdate()
     {
-       
-
-
+      
         bool jetpackActive = Input.GetButton("Fire1");
 
 
@@ -68,11 +70,6 @@ public class MouseController : MonoBehaviour
 
         AdjustJetpackParticle(jetpackActive);  // jetpack active when press, flase when releash
 
-        //enable restart button
-        if (isDead && isGround)
-        {
-            restartButton.gameObject.SetActive(true);
-        }
 
         AdjustFootStepAndJetPackSound(jetpackActive);
 
@@ -131,6 +128,8 @@ public class MouseController : MonoBehaviour
 
         isDead = true;
         anim.SetBool("isDead", true);
+
+        reStartDialog.SetActive(true);
     }
 
     private void CollectCoint(Collider2D coinCollider)
@@ -141,10 +140,7 @@ public class MouseController : MonoBehaviour
         Destroy(coinCollider.gameObject);
     }
 
-    public void ReStartGame()
-    {
-        SceneManager.LoadScene("RocketMouse");
-    }
+  
 
     private void AdjustFootStepAndJetPackSound(bool jetpackActive)
     {
@@ -160,7 +156,20 @@ public class MouseController : MonoBehaviour
             jetpackAudio.volume = 0.5f;
         }
     }
-   
 
-    
+    #region Lose Panel
+
+    public void ReStartGame()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    public void ExitToMenu()
+    {
+        SceneManager.LoadScene("MenuScene");
+    }
+    #endregion
+
+
+
 }

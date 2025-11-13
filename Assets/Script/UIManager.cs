@@ -9,7 +9,8 @@ public class UIManager : MonoBehaviour
     public Animator startBtn;
     public Animator settingBtn;
     public Animator settignDialog;
-
+    public Animator contentPanel;
+    public Animator gearImg;
 
     public void StartGame()
     {
@@ -31,4 +32,14 @@ public class UIManager : MonoBehaviour
 
         settignDialog.SetBool("isHidden", true);
     }
+
+    public void ToggleMenu()
+    {
+        bool isHidden = contentPanel.GetBool("isHidden");
+        contentPanel.SetBool("isHidden", !isHidden);
+        gearImg.SetBool("isHidden", !isHidden);
+    }
+
+
+
 }
